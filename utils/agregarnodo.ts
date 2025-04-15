@@ -1,3 +1,4 @@
+import { RegistrarEvento } from "@/interfaces/interfacesutils";
 import sesion from "./conexion";
 
 export function agregarCategoria(
@@ -16,7 +17,6 @@ export function agregarCategoria(
     .then((result) => result.records[0].get("c").properties)
     .catch((error) => console.error("Error al crear categoría:", error));
 }
-
 
 export function agregarProducto(
   codigoProducto: string,
@@ -42,17 +42,11 @@ export function agregarProducto(
     .catch((error) => console.error("Error al crear producto:", error));
 }
 
+export async function agregarUsuario(valor: RegistrarEvento) {
+  const { codigoUsuario, nombreUsuario, codigoProducto, esCompra } = valor;
 
-
-
-export function agregarUsuario(
-  codigoUsuario: string,
-  nombreUsuario: string,
-  codigoProducto: string,
-  esCompra: boolean = false // Añadimos un parámetro para identificar si es compra o solo vista
-) {
-  return sesion
-    .run(
+  try {
+    const result = await sesion.run(
       `
       MERGE (u:Usuario {codigoUsuario: $codigoUsuario})
       ON CREATE SET u.nombreUsuario = $nombreUsuario
@@ -60,18 +54,42 @@ export function agregarUsuario(
       MATCH (p:Producto {codigoProducto: $codigoProducto})
       
       // Si es compra, se crea la relación de compra
-      ${esCompra ? `MERGE (u)-[:USUARIO_COMPRÓ_PRODUCTO]->(p)` : `MERGE (u)-[:INTERACTUO_CON]->(p)`}
+      ${
+        esCompra
+          ? `MERGE (u)-[:USUARIO_COMPRÓ_PRODUCTO]->(p)`
+          : `MERGE (u)-[:INTERACTUO_CON]->(p)`
+      }
 
       RETURN u, p
       `,
-      { codigoUsuario, nombreUsuario, codigoProducto, esCompra }
-    )
-    .then((result) => {
-      const usuario = result.records[0].get("u").properties;
-      const producto = result.records[0].get("p").properties;
-      return { usuario, producto };
-    })
-    .catch((error) =>
-      console.error("Error al crear usuario o relacionarlo con producto:", error)
+      { codigoUsuario, nombreUsuario, codigoProducto }
     );
+
+    const usuario = result.records[0].get("u").properties;
+    const producto = result.records[0].get("p").properties;
+    return { usuario, producto };
+  } catch (error) {
+    console.error(
+      "Error al crear usuario o relacionarlo con producto:",
+      error
+    );
+    throw error;
+  }
+}
+
+export async function registrarEvento(req: any, res: any) {
+  const datosEvento = req.body;
+
+  await agregarCategoria("MiCate", "Categoría")
+    .then(() =>
+      agregarProducto(datosEvento.codigoProducto, "Categoría", "Producto")
+    )
+    .then(() => agregarUsuario(datosEvento))
+    .then(() =>
+      res.status(200).json({ message: "Acción registrada exitosamente" })
+    )
+    .catch((error) => {
+      console.error("Error al registrar evento:", error);
+      res.status(500).json({ message: "Error al registrar evento" });
+    });
 }
