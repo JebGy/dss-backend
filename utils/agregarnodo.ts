@@ -2,17 +2,15 @@ import { RegistrarEvento } from "@/interfaces/interfacesutils";
 import sesion from "./conexion";
 
 export function agregarCategoria(
-  codigoCategoria: string,
   nombreCategoria: string
 ) {
   return sesion
     .run(
       `
-      MERGE (c:Categoria {codigoCategoria: $codigoCategoria})
-      ON CREATE SET c.nombreCategoria = $nombreCategoria
+      MERGE (c:Categoria {nombreCategoria: $nombreCategoria})
       RETURN c
       `,
-      { codigoCategoria, nombreCategoria }
+      { nombreCategoria }
     )
     .then((result) => result.records[0].get("c").properties)
     .catch((error) => console.error("Error al crear categoría:", error));
@@ -80,7 +78,7 @@ export async function agregarUsuario(valor: RegistrarEvento) {
 export async function registrarEvento(req: any, res: any) {
   const datosEvento = req.body;
 
-  await agregarCategoria(datosEvento.categoria, datosEvento.nombreCategoria)
+  await agregarCategoria(datosEvento.nombreCategoria)
     .then(() =>
       agregarProducto(datosEvento.codigoProducto, datosEvento.nombreCategoria, datosEvento.nombreProducto)
     )

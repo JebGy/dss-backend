@@ -20,8 +20,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   }
   
   if (req.method === "POST") {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { email } = req.body;
+    if (!email) {
       res.status(400).json({ error: "Faltan datos" });
       return;
     }
