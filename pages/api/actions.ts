@@ -8,12 +8,10 @@ import {
 import { verify } from "jsonwebtoken";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-
-   // Set CORS headers
+export default function handler(req: NextApiRequest, res: NextApiResponse) {   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   // Handle OPTIONS request for CORS preflight
   if (req.method === 'OPTIONS') {
@@ -36,6 +34,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     try {
       const decoded = verify(token, secret);
       if (decoded) {
+
         registrarEvento(req, res);
       } else {
         res.status(401).json({ error: "Token inválido" });
