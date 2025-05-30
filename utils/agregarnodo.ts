@@ -43,7 +43,7 @@ export function agregarProducto(
 }
 
 export async function agregarUsuario(valor: RegistrarEvento) {
-  const { codigoUsuario, nombreUsuario, codigoProducto, esCompra } = valor;
+  const { codigoUsuario, nombreUsuario, nombreProducto, esCompra } = valor;
 
   try {
     const result = await sesion.run(
@@ -51,7 +51,7 @@ export async function agregarUsuario(valor: RegistrarEvento) {
       MERGE (u:Usuario {codigoUsuario: $codigoUsuario})
       ON CREATE SET u.nombreUsuario = $nombreUsuario
       WITH u
-      MATCH (p:Producto {codigoProducto: $codigoProducto})
+      MATCH (p:Producto {nombreProducto: $nombreProducto})
       
       // Si es compra, se crea la relación de compra
       ${
@@ -62,7 +62,7 @@ export async function agregarUsuario(valor: RegistrarEvento) {
 
       RETURN u, p
       `,
-      { codigoUsuario, nombreUsuario, codigoProducto }
+      { codigoUsuario, nombreUsuario, nombreProducto }
     );
 
     const usuario = result.records[0].get("u").properties;
@@ -80,9 +80,9 @@ export async function agregarUsuario(valor: RegistrarEvento) {
 export async function registrarEvento(req: any, res: any) {
   const datosEvento = req.body;
 
-  await agregarCategoria("MiCate", "Categoría")
+  await agregarCategoria(datosEvento.categoria, datosEvento.nombreCategoria)
     .then(() =>
-      agregarProducto(datosEvento.codigoProducto, "Categoría", "Producto")
+      agregarProducto(datosEvento.codigoProducto, datosEvento.nombreCategoria, datosEvento.nombreProducto)
     )
     .then(() => agregarUsuario(datosEvento))
     .then(() =>
