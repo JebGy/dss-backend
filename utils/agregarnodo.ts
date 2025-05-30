@@ -1,6 +1,5 @@
 import { RegistrarEvento } from "@/interfaces/interfacesutils";
 import sesion from "./conexion";
-const cors = require('cors');
 
 export function agregarCategoria(
   nombreCategoria: string
@@ -92,9 +91,3 @@ export async function registrarEvento(req: any, res: any) {
       res.status(500).json({ message: "Error al registrar evento" });
     });
 }
-
-app.use(cors({
-  origin: 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
