@@ -45,7 +45,7 @@ export async function recomendarTop6Comprados(){
       OPTIONAL MATCH (usuario:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO]->(p)
       WITH p, COUNT(usuario) AS vecesComprado
       ORDER BY vecesComprado DESC
-      LIMIT 6
+      LIMIT 4
       RETURN p.codigoProducto AS codigoProducto, p.nombreProducto AS nombreProducto
             `
     );
