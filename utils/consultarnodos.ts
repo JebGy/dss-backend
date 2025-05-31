@@ -32,6 +32,37 @@ export async function recomendarCategorias(codigoUsuario: string) {
   return productosRecomendados;
 }
 
+export async function recomendarTop6Comprados(){
+  const productosRecomendados: {
+    codigoProducto: string;
+    nombreProducto: string;
+  }[] = [];
+
+  try {
+    const result = await sesion.run(
+      `
+      MATCH (p:Producto)-[:PERTENECE_A]->(c:Categoria)
+      OPTIONAL MATCH (usuario:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO]->(p)
+      WITH p, COUNT(usuario) AS vecesComprado
+      ORDER BY vecesComprado DESC
+      LIMIT 6
+      RETURN p.codigoProducto AS codigoProducto, p.nombreProducto AS nombreProducto
+            `
+    );
+
+    result.records.forEach((record) =>
+      productosRecomendados.push({
+        codigoProducto: record.get("codigoProducto"),
+        nombreProducto: record.get("nombreProducto"),
+      })
+    );
+  } catch (error) {
+    console.error("Error al recomendar producto:", error);
+  }
+
+  return productosRecomendados;
+}
+
 export async function recomendarLoMasComprado() {
   const productosRecomendados: {
     codigoProducto: string;
