@@ -147,11 +147,12 @@ export async function recomendarProductosPorInteresesSimilares(idUsuario: string
       WHERE u2 <> u
       WITH u, productosUsuario, u2, collect(DISTINCT p2) AS productosOtroUsuario
       // Calcular la intersección de productos para encontrar usuarios similares
-      WITH u, u2, apoc.coll.intersection(productosUsuario, productosOtroUsuario) AS productosEnComun, productosOtroUsuario
+      WITH u, u2, apoc.coll.intersection(productosUsuario, productosOtroUsuario) AS productosEnComun, productosOtroUsuario, productosUsuario
       WHERE size(productosEnComun) > 0
       // Recomendar productos que el usuario no ha visto/comprado pero que los similares sí
       UNWIND productosOtroUsuario AS prodRecomendado
-      WHERE NOT prodRecomendado IN productosUsuario
+      WITH prodRecomendado, productosUsuario
+      WHERE NONE(x IN productosUsuario WHERE x = prodRecomendado)
       WITH prodRecomendado, count(*) AS vecesRecomendado
       RETURN prodRecomendado.codigoProducto AS codigoProducto, prodRecomendado.nombreProducto AS nombreProducto
       ORDER BY vecesRecomendado DESC
