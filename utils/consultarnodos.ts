@@ -178,3 +178,44 @@ LIMIT 4
 
   return productosRecomendados;
 }
+
+export async function recomendarPorPaqueteSimilar(idUsuario: string) {
+  const productosRecomendados: {
+    codigoProducto: string;
+    nombreProducto: string;
+  }[] = [];
+
+  try {
+    const result = await sesion.run(
+      `
+      MATCH (u:Usuario {codigoUsuario: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO]->(p:Producto)
+      WITH u, collect(p) AS productosUsuario
+      MATCH (u2:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO]->(p2:Producto)
+      WHERE u2 <> u
+      WITH u, productosUsuario, u2, collect(p2) AS productosOtroUsuario
+      WHERE ALL(x IN productosUsuario WHERE x IN productosOtroUsuario)
+      UNWIND productosOtroUsuario AS prodRecomendado
+      WITH DISTINCT prodRecomendado, productosUsuario
+      WHERE NOT prodRecomendado IN productosUsuario
+      RETURN prodRecomendado.codigoProducto AS codigoProducto, prodRecomendado.nombreProducto AS nombreProducto
+      LIMIT 5
+      `,
+      { idUsuario }
+    );
+
+    result.records.forEach((record) => {
+      productosRecomendados.push({
+        codigoProducto: record.get("codigoProducto"),
+        nombreProducto: record.get("nombreProducto"),
+      });
+    });
+  } catch (error) {
+    console.error(
+      "Error al recomendar productos por paquete similar:",
+      error
+    );
+  }
+
+  return productosRecomendados;
+}
+
