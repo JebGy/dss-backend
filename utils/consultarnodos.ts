@@ -32,7 +32,7 @@ export async function recomendarCategorias(codigoUsuario: string) {
   return productosRecomendados;
 }
 
-export async function recomendarTop6Comprados(){
+export async function recomendarTop6Comprados() {
   const productosRecomendados: {
     codigoProducto: string;
     nombreProducto: string;
@@ -98,7 +98,6 @@ export async function recomendarLoMasComprado() {
   return productosRecomendados;
 }
 
-
 export async function obtenerProductosPorCategoriaUsuario(idUsuario: string) {
   const productos: {
     codigoProducto: string;
@@ -125,13 +124,18 @@ export async function obtenerProductosPorCategoriaUsuario(idUsuario: string) {
       });
     });
   } catch (error) {
-    console.error("Error al obtener productos por categoría del usuario:", error);
+    console.error(
+      "Error al obtener productos por categoría del usuario:",
+      error
+    );
   }
 
   return productos;
 }
 
-export async function recomendarProductosPorInteresesSimilares(idUsuario: string) {
+export async function recomendarProductosPorInteresesSimilares(
+  idUsuario: string
+) {
   const productosRecomendados: {
     codigoProducto: string;
     nombreProducto: string;
@@ -140,23 +144,21 @@ export async function recomendarProductosPorInteresesSimilares(idUsuario: string
   try {
     const result = await sesion.run(
       `
-      // Buscar usuarios similares por intereses (productos visitados o comprados)
-      MATCH (u:Usuario {id: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p:Producto)
-      WITH u, collect(DISTINCT p) AS productosUsuario
-      MATCH (u2:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p2:Producto)
-      WHERE u2 <> u
-      WITH u, productosUsuario, u2, collect(DISTINCT p2) AS productosOtroUsuario
-      // Calcular la intersección de productos para encontrar usuarios similares
-      WITH u, u2, apoc.coll.intersection(productosUsuario, productosOtroUsuario) AS productosEnComun, productosOtroUsuario, productosUsuario
-      WHERE size(productosEnComun) > 0
-      // Recomendar productos que el usuario no ha visto/comprado pero que los similares sí
-      UNWIND productosOtroUsuario AS prodRecomendado
-      WITH prodRecomendado, productosUsuario
-      WHERE NONE(x IN productosUsuario WHERE x = prodRecomendado)
-      WITH prodRecomendado, count(*) AS vecesRecomendado
-      RETURN prodRecomendado.codigoProducto AS codigoProducto, prodRecomendado.nombreProducto AS nombreProducto
-      ORDER BY vecesRecomendado DESC
-      LIMIT 4
+      MATCH (u:Usuario {codigoUsuario: ${idUsuario}})-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p:Producto)      
+WITH u, collect(DISTINCT p) AS productosUsuario      
+MATCH (u2:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p2:Producto)      
+WHERE u2 <> u      
+WITH u, productosUsuario, u2, collect(DISTINCT p2) AS productosOtroUsuario       // Calcular la intersección de productos para encontrar usuarios similares      
+WITH u, u2, apoc.coll.intersection(productosUsuario, productosOtroUsuario) AS productosEnComun, productosOtroUsuario, productosUsuario      
+WHERE size(productosEnComun) > 0       // Recomendar productos que el usuario no ha visto/comprado pero que los similares sí      
+UNWIND productosOtroUsuario AS prodRecomendado      
+WITH prodRecomendado, productosUsuario      
+WHERE NONE(x IN productosUsuario
+WHERE x = prodRecomendado)      
+WITH prodRecomendado, count(*) AS vecesRecomendado      
+RETURN prodRecomendado.codigoProducto AS codigoProducto, prodRecomendado.nombreProducto AS nombreProducto      
+ORDER BY vecesRecomendado DESC      
+LIMIT 4
       `,
       { idUsuario }
     );
@@ -168,7 +170,10 @@ export async function recomendarProductosPorInteresesSimilares(idUsuario: string
       });
     });
   } catch (error) {
-    console.error("Error al recomendar productos por intereses similares:", error);
+    console.error(
+      "Error al recomendar productos por intereses similares:",
+      error
+    );
   }
 
   return productosRecomendados;
