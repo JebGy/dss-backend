@@ -144,7 +144,7 @@ export async function recomendarProductosPorInteresesSimilares(
   try {
     const result = await sesion.run(
       `
-      MATCH (u:Usuario {codigoUsuario: ${idUsuario}})-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p:Producto)      
+      MATCH (u:Usuario {codigoUsuario: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p:Producto)      
 WITH u, collect(DISTINCT p) AS productosUsuario      
 MATCH (u2:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p2:Producto)      
 WHERE u2 <> u      
