@@ -108,7 +108,7 @@ export async function obtenerProductosPorCategoriaUsuario(idUsuario: string) {
   try {
     const result = await sesion.run(
       `
-      MATCH (u:Usuario {id: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p:Producto)-[:PERTENECE_A]->(c:Categoria)
+      MATCH (u:Usuario {id: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO|INTERACTUO_CON]->(p:Producto)-[:PERTENECE_A]->(c:Categoria)
       WITH DISTINCT c
       MATCH (p2:Producto)-[:PERTENECE_A]->(c)
       RETURN DISTINCT p2.codigoProducto AS codigoProducto, p2.nombreProducto AS nombreProducto, c.nombre AS categoria
@@ -144,9 +144,9 @@ export async function recomendarProductosPorInteresesSimilares(
   try {
     const result = await sesion.run(
       `
-      MATCH (u:Usuario {codigoUsuario: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p:Producto)      
+      MATCH (u:Usuario {codigoUsuario: $idUsuario})-[:USUARIO_COMPRÓ_PRODUCTO|INTERACTUO_CON]->(p:Producto)      
 WITH u, collect(DISTINCT p) AS productosUsuario      
-MATCH (u2:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO|USUARIO_VISITÓ_PRODUCTO]->(p2:Producto)      
+MATCH (u2:Usuario)-[:USUARIO_COMPRÓ_PRODUCTO|INTERACTUO_CON]->(p2:Producto)      
 WHERE u2 <> u      
 WITH u, productosUsuario, u2, collect(DISTINCT p2) AS productosOtroUsuario       // Calcular la intersección de productos para encontrar usuarios similares      
 WITH u, u2, apoc.coll.intersection(productosUsuario, productosOtroUsuario) AS productosEnComun, productosOtroUsuario, productosUsuario      
@@ -158,7 +158,7 @@ WHERE x = prodRecomendado)
 WITH prodRecomendado, count(*) AS vecesRecomendado      
 RETURN prodRecomendado.codigoProducto AS codigoProducto, prodRecomendado.nombreProducto AS nombreProducto      
 ORDER BY vecesRecomendado DESC      
-LIMIT 4
+LIMIT 5
       `,
       { idUsuario }
     );
